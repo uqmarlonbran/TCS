@@ -7,7 +7,6 @@ Date: February 15, 2022
 
 import torch
 from dc.dc import *
-from einops import rearrange
 from einops.layers.torch import Rearrange
 from torch import nn
 

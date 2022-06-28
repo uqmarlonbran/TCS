@@ -24,6 +24,10 @@ def FFT_DC(x, y, mask, lamb, norm='ortho'):
     # Check if complex
     numCh = x.shape[1]
 
+    # Get complex y view
+    cy = y.permute(0, 2, 3, 1).contiguous()
+    cy = torch.view_as_complex(cy)
+
     # By default, torch.view_as_complex uses last index as real,imag
     x = x.permute(0, 2, 3, 1).contiguous()
 
@@ -42,7 +46,7 @@ def FFT_DC(x, y, mask, lamb, norm='ortho'):
         z = (1 - mask) * z + mask * y
     else:
         # Weighted average of the collected and reconstructed points
-        z = (1 - mask) * z + mask * (z + lamb * y) / (1 + lamb)
+        z = (1 - mask) * z + mask * (z + lamb * cy) / (1 + lamb)
 
     # Apply mask and invert (keep channels that we are working with)
     z = torch.view_as_real(torch.fft.ifft2(z, norm=norm))[:, :, :, 0:numCh]

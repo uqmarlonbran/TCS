@@ -10,7 +10,6 @@ norm = 'ortho'
 N = 320
 R = 4
 numCh = 1
-iterations = 1
 lamb = True
 
 # Generate phantom for testing

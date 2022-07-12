@@ -95,5 +95,10 @@ Paper is available on arXiv <https://arxiv.org/pdf/2203.12861.pdf>::
 
   M. Bran Lorenzana, C. Engstrom, F. Liu, and S. S. Chandra, ‘Transformer Compressed Sensing via Global Image Tokens’. arXiv, Mar. 27, 2022. Available: http://arxiv.org/abs/2203.12861
 
+----
+
+Kaleidoscope transform was introduced by White et. al <https://doi.org/10.1109/LSP.2021.3116510>::
+
+  J. M. White, S. Crozier and S. S. Chandra, "Bespoke Fractal Sampling Patterns for Discrete Fourier Space via the Kaleidoscope Transform," in IEEE Signal Processing Letters, vol. 28, pp. 2053-2057, 2021, doi: 10.1109/LSP.2021.3116510.
 
 ----

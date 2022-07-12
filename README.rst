@@ -45,6 +45,11 @@ Therefore to build the denoiser featured in our paper:
 
 .. code-block:: python 
   
+  ## Import necessary models
+  from DcTNN.tnn import * 
+  from dc.dc import *
+  
+  ## Network parameters
   # Image size
   N = 320
   # Size of patches/kd tokens
@@ -65,14 +70,18 @@ Therefore to build the denoiser featured in our paper:
   # None dim_feedforward defaults to d_model^(3/2)
   dim_feedforward = None
 
-  # Define the dictionaries of parameter values
+  ## Define the dictionaries of parameter values
   patchArgs = {"patch_size": patchSize, "kaleidoscope": False, "layerNo": layerNo, "numCh": numCh, "nhead": nhead_patch, "num_encoder_layers": num_encoder_layers, "dim_feedforward": dim_feedforward, "d_model": d_model_patch}
   kdArgs = {"patch_size": patchSize, "kaleidoscope": True, "layerNo": layerNo, "numCh": numCh, "nhead": nhead_patch, "num_encoder_layers": num_encoder_layers, "dim_feedforward": dim_feedforward, "d_model": d_model_patch}
   axArgs = {"layerNo": layerNo, "numCh": numCh, "d_model": d_model_axial, "nhead": nhead_axial, "num_encoder_layers": num_encoder_layers, "dim_feedforward": dim_feedforward}
   
+  ## Build the list of encoders being used
   encList = [axVIT, patchVIT, patchVIT]
+  # Arguments to feed into encoders
   encArgs = [axArgs, kdArgs, patchArgs]
+  # Data consistency function
   dcFunc = FFT_DC
+  # Use learned weighting parameter
   lamb = True
 
   # Define the model

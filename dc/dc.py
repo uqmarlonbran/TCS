@@ -5,6 +5,27 @@ Author: Marlon Ernesto Bran Lorenzana
 Date: August 19, 2021
 """
 import torch
+from einops import rearrange
+
+def fft_2d(input, norm='ortho', dim=(-2, -1)):
+    x = input
+    x = rearrange(x, 'b c h w -> b h w c').contiguous()
+    if x.shape[3] == 1:
+        x = torch.cat([x, torch.zeros_like(x)], 3)
+    x = torch.view_as_complex(x)
+    x = torch.fft.fft2(x, norm=norm, dim=dim)
+    x = torch.view_as_real(x)
+    x = rearrange(x, 'b h w c -> b c h w').contiguous()
+    return x
+
+def ifft_2d(input, norm='ortho', dim=(-2, -1)):
+    x = input
+    x = rearrange(x, 'b c h w -> b h w c').contiguous()
+    x = torch.view_as_complex(x)
+    x = torch.fft.ifft2(x, dim=dim, norm=norm)
+    x = torch.view_as_real(x)
+    x = rearrange(x, 'b h w c -> b c h w').contiguous()
+    return x
 
 """
 Applies Fourier mask and data consistency in Fourier Space

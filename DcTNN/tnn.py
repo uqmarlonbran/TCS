@@ -82,7 +82,7 @@ class patchVIT(nn.Module):
 
 class axVIT(nn.Module):
     """
-    Defines the transformer for MRI reconstruction using exclusively a Transformer Encoder and image patches
+    Defines the transformer for MRI reconstruction using exclusively a Transformer Encoder and axial tokens
     Args:
             N (int)                     -       Image Size
             layerNo (int)               -       Number of cascaded TNN

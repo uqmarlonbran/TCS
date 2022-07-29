@@ -169,7 +169,7 @@ class cascadeNet(nn.Module):
 
     """
     xPrev should be [numBatch, numCh, ydim, xdim]
-    yPrev should be [numBatch, numCh, ydim, xdim]
+    y should be [numBatch, kCh, ydim, xdim]
     sampleMask should be [ydim, xdim]
     """
     def forward(self, xPrev, y, sampleMask):

@@ -93,7 +93,7 @@ Citation and Acknowledgement
 
 Paper is available on arXiv <https://arxiv.org/pdf/2203.12861.pdf>::
 
-  M. Bran Lorenzana, C. Engstrom, F. Liu, and S. S. Chandra, ‘Transformer Compressed Sensing via Global Image Tokens’. arXiv, Mar. 27, 2022. Available: http://arxiv.org/abs/2203.12861
+  M. Bran Lorenzana, C. Engstrom, and S. S. Chandra, ‘Transformer Compressed Sensing via Global Image Tokens’. arXiv, Mar. 27, 2022. Available: http://arxiv.org/abs/2203.12861
 
 ----
 

@@ -45,6 +45,11 @@ Therefore to build the denoiser featured in our paper:
 
 .. code-block:: python 
   
+  ## Import necessary models
+  from DcTNN.tnn import * 
+  from dc.dc import *
+  
+  ## Network parameters
   # Image size
   N = 320
   # Size of patches/kd tokens
@@ -65,14 +70,18 @@ Therefore to build the denoiser featured in our paper:
   # None dim_feedforward defaults to d_model^(3/2)
   dim_feedforward = None
 
-  # Define the dictionaries of parameter values
+  ## Define the dictionaries of parameter values
   patchArgs = {"patch_size": patchSize, "kaleidoscope": False, "layerNo": layerNo, "numCh": numCh, "nhead": nhead_patch, "num_encoder_layers": num_encoder_layers, "dim_feedforward": dim_feedforward, "d_model": d_model_patch}
   kdArgs = {"patch_size": patchSize, "kaleidoscope": True, "layerNo": layerNo, "numCh": numCh, "nhead": nhead_patch, "num_encoder_layers": num_encoder_layers, "dim_feedforward": dim_feedforward, "d_model": d_model_patch}
   axArgs = {"layerNo": layerNo, "numCh": numCh, "d_model": d_model_axial, "nhead": nhead_axial, "num_encoder_layers": num_encoder_layers, "dim_feedforward": dim_feedforward}
   
+  ## Build the list of encoders being used
   encList = [axVIT, patchVIT, patchVIT]
+  # Arguments to feed into encoders
   encArgs = [axArgs, kdArgs, patchArgs]
+  # Data consistency function
   dcFunc = FFT_DC
+  # Use learned weighting parameter
   lamb = True
 
   # Define the model
@@ -82,9 +91,14 @@ Therefore to build the denoiser featured in our paper:
 Citation and Acknowledgement
 ====================
 
-Paper is available on arXiv::
+Paper is available on arXiv <https://arxiv.org/pdf/2203.12861.pdf>::
 
-  M. Bran Lorenzana, C. Engstrom, F. Liu, and S. S. Chandra, ‘Transformer Compressed Sensing via Global Image Tokens’. arXiv, Mar. 27, 2022. Available: http://arxiv.org/abs/2203.12861 
+  M. Bran Lorenzana, C. Engstrom, and S. S. Chandra, ‘Transformer Compressed Sensing via Global Image Tokens’. arXiv, Mar. 27, 2022. Available: http://arxiv.org/abs/2203.12861
 
+----
+
+Kaleidoscope transform was introduced by White et. al <https://doi.org/10.1109/LSP.2021.3116510>::
+
+  J. M. White, S. Crozier and S. S. Chandra, "Bespoke Fractal Sampling Patterns for Discrete Fourier Space via the Kaleidoscope Transform," in IEEE Signal Processing Letters, vol. 28, pp. 2053-2057, 2021, doi: 10.1109/LSP.2021.3116510.
 
 ----

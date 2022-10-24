@@ -227,12 +227,10 @@ class imageEncoder(nn.Module):
         # Define Kaleidoscope transform
         if kaleidoscope:
             self.to_kaleidoscope_embedding = nn.Sequential(
-                Rearrange('b c (h k1) (w k2) -> b c (h w) k1 k2', k1=k1, k2=k2),
-                Rearrange('b c (p1 p2) h w -> b c (h p1) (w p2)', p1=patch_height, p2=patch_width)
+                Rearrange('b c (h k1) (w k2) -> b c (k1 h) (k2 w)', k1=patch_height, k2=patch_width)
             )
             self.from_kaleidoscope_embedding = nn.Sequential(
-                Rearrange('b c (h p1) (w p2) -> b c (p1 p2) h w', p1=patch_height, p2=patch_width),
-                Rearrange('b c (h w) k1 k2 -> b c (h k1) (w k2)', h=image_height // k1, k1=k1, k2=k2)
+                Rearrange('b c (k1 h) (k2 w) -> b c (h k1) (w k2)', h=patch_height, w=patch_width)
             )
 
         # Embed the image in patches

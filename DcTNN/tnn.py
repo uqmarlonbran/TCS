@@ -219,25 +219,20 @@ class imageEncoder(nn.Module):
         num_patches = (image_height // patch_height) * (image_width // patch_width)
         patch_dim = patch_height * patch_width * numCh
 
-        # Define related kaleidoscope dimensionality
-        k1 = image_height // patch_height
-        k2 = image_width // patch_width
-        self.kaleidoscope = kaleidoscope
-
         # Define Kaleidoscope transform
         if kaleidoscope:
-            self.to_kaleidoscope_embedding = nn.Sequential(
-                Rearrange('b c (h k1) (w k2) -> b c (k1 h) (k2 w)', k1=patch_height, k2=patch_width)
+            self.to_embedding = nn.Sequential(
+                Rearrange('b c (h k1) (w k2) -> b c (k1 h) (k2 w)', k1=patch_height, k2=patch_width),
+                nn.Linear(patch_dim, d_model)
             )
-            self.from_kaleidoscope_embedding = nn.Sequential(
-                Rearrange('b c (k1 h) (k2 w) -> b c (h k1) (w k2)', h=patch_height, w=patch_width)
+            self.from_embedding = Rearrange('b c (k1 h) (k2 w) -> b c (h k1) (w k2)', h=patch_height, w=patch_width)
+        else:
+            # Embed the image in patches
+            self.to_patch_embedding = nn.Sequential(
+                Rearrange('b c (h p1) (w p2) -> b (h w) (p1 p2 c)', p1=patch_height, p2=patch_width),
+                nn.Linear(patch_dim, d_model),
             )
-
-        # Embed the image in patches
-        self.to_patch_embedding = nn.Sequential(
-            Rearrange('b c (h p1) (w p2) -> b (h w) (p1 p2 c)', p1=patch_height, p2=patch_width),
-            nn.Linear(patch_dim, d_model),
-        )
+            self.from_embedding = Rearrange('b (h w) (p1 p2 c) -> b c (h p1) (w p2)', c=numCh, h=image_height // patch_height, p1=patch_height, p2=patch_width)
 
         # Define positional embedding
         self.pos_embedding = nn.Parameter(torch.randn(1, num_patches, d_model))
@@ -246,7 +241,7 @@ class imageEncoder(nn.Module):
         self.mlp_head = nn.Sequential(
             nn.LayerNorm(d_model),
             nn.Linear(d_model, patch_dim),
-            Rearrange('b (h w) (p1 p2 c) -> b c (h p1) (w p2)', c=numCh, h=image_height // patch_height, p1=patch_height, p2=patch_width),
+            self.from_embedding,
         )
 
         # Define dropout layer
@@ -258,13 +253,9 @@ class imageEncoder(nn.Module):
     def forward(self, img, src_mask=None):
 
         x = img
-
-        # If kaleidoscope has been defined
-        if self.kaleidoscope:
-            x = self.to_kaleidoscope_embedding(x)
         
         # Get the patch representation
-        x = self.to_patch_embedding(x)
+        x = self.to_embedding(x)
         
         # Get the positional embedding
         x = x + self.pos_embedding
@@ -276,11 +267,7 @@ class imageEncoder(nn.Module):
         x = self.encoder(x, src_mask)
 
         # Pass-through multi-layer perceptron and un-patch
-        x = self.mlp_head(x)
-
-        # Undo the kaleidoscope transform
-        if self.kaleidoscope:
-            x = self.from_kaleidoscope_embedding(x)        
+        x = self.mlp_head(x)      
 
         # Return the output
         return x

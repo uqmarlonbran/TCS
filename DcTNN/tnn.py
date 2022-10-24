@@ -74,7 +74,7 @@ class patchVIT(nn.Module):
 
             # Get a new image estimate based on previous estimate of x (xPrev) 
             im_denoise = self.transformers[i](im)
-            im = im + im_denoise
+            im = im_denoise
 
         # Return the final output and the residual 
         return im
@@ -132,7 +132,7 @@ class axVIT(nn.Module):
 
             # Get a new image estimate based on previous estimate of x (xPrev) 
             im_denoise = self.transformers[i](im)
-            im = im + im_denoise
+            im = im_denoise
 
         # Return the final output and the residual 
         return im
@@ -180,7 +180,8 @@ class cascadeNet(nn.Module):
         for i, transformer in enumerate(self.transformers):        
 
             # Denoise the image
-            im = transformer(im)
+            im_denoise = transformer(im)
+            im = im + im_denoise
 
             # Update the residual
             if self.lamb is False:
@@ -246,7 +247,6 @@ class imageEncoder(nn.Module):
 
         # Define dropout layer
         self.dropout = nn.Dropout(dropout)
-
 
 
     # Functions as a wrapper for transformer function that first creates tokens from the image

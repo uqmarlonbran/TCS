@@ -91,7 +91,13 @@ Therefore to build the denoiser featured in our paper:
 Citation and Acknowledgement
 ====================
 
-Paper is available on arXiv <https://arxiv.org/pdf/2203.12861.pdf>::
+Paper is available on IEEE Xplore <https://doi.org/10.1109/ICIP46576.2022.9897630>::
+
+  M. B. Lorenzana, C. Engstrom and S. S. Chandra, "Transformer Compressed Sensing Via Global Image Tokens," 2022 IEEE International Conference on Image Processing (ICIP), 2022, pp. 3011-3015, doi: 10.1109/ICIP46576.2022.9897630.
+
+----
+
+Paper is also available on arXiv <https://arxiv.org/pdf/2203.12861.pdf>::
 
   M. Bran Lorenzana, C. Engstrom, and S. S. Chandra, ‘Transformer Compressed Sensing via Global Image Tokens’. arXiv, Mar. 27, 2022. Available: http://arxiv.org/abs/2203.12861
 

@@ -14,6 +14,22 @@ from torch import nn
 def pair(t):
     return t if isinstance(t, tuple) else (t, t)
 
+"""
+Defines a function to give the refinement block similar to AUTOMAP.
+"""
+def get_refinement_block(numCh, convFeatures):
+    # Define the two linear layers that will produce the G transform
+    if convFeatures is not None and convFeatures > 0:
+        RBlock = nn.Sequential(
+            # Perform some convolutions
+            nn.Conv2d(numCh, convFeatures, 5, 1, 2), nn.LeakyReLU(True),
+            nn.Conv2d(convFeatures, convFeatures, 5, 1, 2), nn.LeakyReLU(True),
+            nn.ConvTranspose2d(convFeatures, numCh, 7, 1, 3)
+        )
+    else:
+        RBlock = nn.Identity()
+    return RBlock
+
 
 class patchVIT(nn.Module):
     """
@@ -192,6 +208,103 @@ class cascadeNet(nn.Module):
         # Return the final output
         return im
 
+class kaleidoscopeNet(nn.Module):
+    """
+    Defines a TNN that cascades denoising networks and applies data consistency.
+    The number of TNN parameters is decreased by executing operations on kaleidoscope
+    sub-images. With a CNN layer to combine the denoised images.
+    Args:
+        N (int)                     -       Image Size
+        numCh (int)                 -       Number of channels (2 assumes complex)
+        encList (array)             -       Should contain denoising network
+        encArgs (array)             -       Contains dictionaries with args for encoders in encList
+        dcFunc (function)           -       Contains the data consistency function to be used in recon
+        lamb (bool)                 -       Whether or not to use a leanred data consistency parameter
+        scaleArr (array)            -       Contains the downsampling factor for Kaleidoscope decomp.
+        refFiltScale (int)          -       Number of filters used in refinement layer.
+    """
+    def __init__(self, N, numCh, encList, encArgs, dcFunc=FFT_DC, lamb=True, scaleArr=[4, 2, 2], refFiltScale=2):
+        super(kaleidoscopeNet, self).__init__()
+        # Define lambda for data consistency
+        if lamb:
+            self.lamb = nn.Parameter(torch.ones(len(encList)) * 0.5)
+        else:
+            self.lamb = False
+        # Define image size
+        self.N = N
+        # Define the data consistency function
+        self.dcFunc = dcFunc
+        # Define the scales the transformer layers operate on
+        self.scaleArr = scaleArr
+        # Define the refine depth
+        self.refFiltScale = refFiltScale
+
+        # Cascade the transformers
+        transformers = []
+        kdSizes = []
+        refinementLayers = []
+        for i, enc in enumerate(encList):
+
+            # Make sure that the image size is divisible by scale
+            assert N % scaleArr[i] == 0, 'Image dimensions must be divisible by the scale.'
+            
+            # Append the transformer at the chosen image size
+            kdSize = N // scaleArr[i]
+            kdSizes.append(kdSize) 
+            transformers.append(enc(kdSize, **encArgs[i]))
+
+            # If refining through KD tokens
+            if refFiltScale > 0 and scaleArr[i] > 1:
+                refinementLayers.append(get_refinement_block(numCh * (scaleArr[i]**2), int(numCh * (scaleArr[i]**2) * refFiltScale)))
+
+        self.transformers = nn.ModuleList(transformers)
+        self.refinementLayers = nn.ModuleList(refinementLayers)
+        self.kdSizes = kdSizes
+
+    """
+    xPrev should be [numBatch, numCh, ydim, xdim]
+    y should be [numBatch, kCh, ydim, xdim]
+    sampleMask should be [ydim, xdim]
+    """
+    def forward(self, xPrev, y, sampleMask):
+
+        im = xPrev
+
+        # Go over the number of iterations to perform updating 
+        for i, transformer in enumerate(self.transformers):        
+
+            # Create the kaleidoscope sub-images and place in batch
+            im = rearrange(im, 'b c (k1 h) (k2 w) -> (b h w) c k1 k2', 
+                            k1=self.kdSizes[i], k2=self.kdSizes[i])
+
+            # Denoise the image
+            im_denoise = transformer(im)
+            im = im + im_denoise
+
+            # Perform convolution to achieve inter-kd attention
+            if self.refFiltScale > 0 and self.scaleArr[i] > 1:
+                # Move the kaleidoscope images back into the channel dim
+                im = rearrange(im, '(b h w) c k1 k2 -> b (c h w) k1 k2', h=self.scaleArr[i], w=self.scaleArr[i])
+
+                # Denoise the image
+                im_denoise = self.refinementLayers[i](im)
+                im = im + im_denoise
+
+                # Move the kaleidoscope images back into the batch dim
+                im = rearrange(im, 'b (c h w) k1 k2 -> (b h w) c k1 k2', h=self.scaleArr[i], w=self.scaleArr[i])
+
+            # Get back original image
+            im = rearrange(im, '(b h w) c k1 k2 -> b c (k1 h) (k2 w)', 
+                            k1=self.kdSizes[i], k2=self.kdSizes[i], h=self.scaleArr[i], w=self.scaleArr[i])
+
+            # Update the residual
+            if self.lamb is False:
+                im = self.dcFunc(im, y, sampleMask, None)
+            else:
+                im = self.dcFunc(im, y, sampleMask, self.lamb[i])
+
+        # Return the final output
+        return im
 
 class imageEncoder(nn.Module):
     """

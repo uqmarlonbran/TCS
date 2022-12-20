@@ -65,7 +65,11 @@ class patchVIT(nn.Module):
             d_model = patch_size * patch_size * numCh
         # Determine dim_feedforward if not given
         if dim_feedforward is None:
-            dim_feedforward = int(d_model ** (3 / 2))
+            if numCh == 1:
+                dim_feedforward = int(d_model ** (3 / 2))
+            elif numCh == 2:
+                dim_feedforward = int(d_model ** (1.3335))
+                
         # Whether or not kaleidoscope
         self.kaleidoscope = kaleidoscope
 
@@ -126,7 +130,10 @@ class axVIT(nn.Module):
             d_model = N * numCh
         # Determine dim_feedforward if not given
         if dim_feedforward is None:
-            dim_feedforward = int(d_model ** (3 / 2))
+            if numCh == 1:
+                dim_feedforward = int(d_model ** (3 / 2))
+            elif numCh == 2:
+                dim_feedforward = int(d_model ** (1.3335))
         
 
         # Cascade the denoising transformers

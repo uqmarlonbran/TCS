@@ -9,10 +9,11 @@ import matplotlib.pyplot as plt
 norm = 'ortho'
 N = 320
 R = 4
-numCh = 2
+numCh = 1
 lamb = True
 scaleArr = [4, 2, 2]
-refFiltScale = 2
+# scaleArr = [1, 1, 1]
+refFiltScale = 0
 
 # Generate phantom for testing
 ph = np.rot90(np.transpose(np.array(shepp_logan(N))), 1)
